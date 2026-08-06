@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Layout Shortcuts</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      font-size: 13px;
+      margin: 12px;
+      color: #1a1a1a;
+    }
+    h2 {
+      font-size: 15px;
+      margin: 16px 0 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    td {
+      padding: 3px 4px;
+      border-bottom: 1px solid #eee;
+    }
+    td.key {
+      font-family: "SF Mono", Menlo, monospace;
+      white-space: nowrap;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h2>Align &amp; Distribute</h2>
+  <table>
+    <tr><td>Align Left</td><td class="key">Ctrl+Cmd+L</td></tr>
+    <tr><td>Align Right</td><td class="key">Ctrl+Cmd+R</td></tr>
+    <tr><td>Align Center</td><td class="key">Ctrl+Cmd+C</td></tr>
+    <tr><td>Align Top</td><td class="key">Ctrl+Cmd+T</td></tr>
+    <tr><td>Align Bottom</td><td class="key">Ctrl+Cmd+B</td></tr>
+    <tr><td>Align Middle</td><td class="key">Ctrl+Cmd+M</td></tr>
+    <tr><td>Distribute Horizontally</td><td class="key">Ctrl+Cmd+H</td></tr>
+    <tr><td>Distribute Vertically</td><td class="key">Ctrl+Cmd+V</td></tr>
+  </table>
+
+  <h2>Resize</h2>
+  <table>
+    <tr><td>Same Size</td><td class="key">Ctrl+Cmd+Z</td></tr>
+    <tr><td>Same Width</td><td class="key">Ctrl+Cmd+E</td></tr>
+    <tr><td>Same Height</td><td class="key">Cmd+Shift+E</td></tr>
+  </table>
+
+  <h2>Arrange</h2>
+  <table>
+    <tr><td>Bring Forward</td><td class="key">Opt+Cmd+Shift+F</td></tr>
+    <tr><td>Bring to Front</td><td class="key">Cmd+Shift+F</td></tr>
+    <tr><td>Send Backward</td><td class="key">Opt+Cmd+Shift+B</td></tr>
+    <tr><td>Send to Back</td><td class="key">Cmd+Shift+B</td></tr>
+    <tr><td>Copy Position</td><td class="key">Ctrl+1</td></tr>
+    <tr><td>Paste Position</td><td class="key">Ctrl+2</td></tr>
+  </table>
+
+  <h2>Insert</h2>
+  <table>
+    <tr><td>Sticky Note</td><td class="key">Ctrl+Cmd+0</td></tr>
+    <tr><td>Add Text Box</td><td class="key">Opt+Q</td></tr>
+  </table>
+
+  <h2>Text</h2>
+  <table>
+    <tr><td>Wrap Text in Shape</td><td class="key">Opt+Ctrl+8</td></tr>
+    <tr><td>Paste Unformatted Text</td><td class="key">Ctrl+Opt+T</td></tr>
+    <tr><td>Toggle Bullets</td><td class="key">Opt+Ctrl+9</td></tr>
+  </table>
+
+  <p id="status" style="margin-top: 16px; color: #666;">
+    Select shapes on the slide, then use a shortcut. Align/Distribute/Resize
+    need 2+ shapes selected (Distribute needs 3+). Text shortcuts need a
+    shape or text cursor selected. Cmd+Z undoes any action.
+  </p>
+</body>
+</html>
