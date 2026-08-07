@@ -50,7 +50,7 @@
     { "action": "ToggleWrapText", "key": { "default": "Alt+Ctrl+8", "mac": "Alt+Ctrl+8" } },
     { "action": "PasteUnformatted", "key": { "default": "Ctrl+Alt+T", "mac": "Ctrl+Alt+T" } },
     { "action": "ToggleBullets", "key": { "default": "Alt+Ctrl+9", "mac": "Alt+Ctrl+9" } },
-    { "action": "IncreaseTextMargins", "key": { "default": "Alt+Ctrl+6", "mac": "Alt+Ctrl+6" } },
-    { "action": "DecreaseTextMargins", "key": { "default": "Alt+Ctrl+4", "mac": "Alt+Ctrl+4" } }
+    { "action": "IncreaseTextMargins", "key": { "default": "Ctrl+Command+Equal", "mac": "Ctrl+Command+Equal" } },
+    { "action": "DecreaseTextMargins", "key": { "default": "Ctrl+Command+Minus", "mac": "Ctrl+Command+Minus" } }
   ]
 }
