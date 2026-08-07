@@ -6,14 +6,14 @@
     xsi:type="TaskPaneApp">
 
   <Id>5298a2c8-07f9-4aa4-8727-1ffd42c19287</Id>
-  <Version>1.1.2.0</Version>
+  <Version>1.2.7.0</Version>
   <ProviderName>Julie Van</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Layout Shortcuts" />
   <Description DefaultValue="Keyboard shortcuts for aligning, distributing, resizing, arranging, and editing text in PowerPoint." />
-  <IconUrl DefaultValue="https://julievan.github.io/ppt-shortcuts/assets/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://julievan.github.io/ppt-shortcuts/assets/icon-80.png" />
-  <SupportUrl DefaultValue="https://github.com/julievan/ppt-shortcuts" />
+  <IconUrl DefaultValue="https://julievan.github.io/layout-shortcuts/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://julievan.github.io/layout-shortcuts/assets/icon-80.png" />
+  <SupportUrl DefaultValue="https://github.com/julievan/layout-shortcuts" />
 
   <AppDomains>
     <AppDomain>https://julievan.github.io</AppDomain>
@@ -24,7 +24,7 @@
   </Hosts>
 
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://julievan.github.io/ppt-shortcuts/src/taskpane.html" />
+    <SourceLocation DefaultValue="https://julievan.github.io/layout-shortcuts/src/taskpane.html" />
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
@@ -80,14 +80,14 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://julievan.github.io/ppt-shortcuts/assets/icon-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://julievan.github.io/ppt-shortcuts/assets/icon-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://julievan.github.io/ppt-shortcuts/assets/icon-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="https://julievan.github.io/layout-shortcuts/assets/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://julievan.github.io/layout-shortcuts/assets/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://julievan.github.io/layout-shortcuts/assets/icon-80.png" />
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://julievan.github.io/ppt-shortcuts/src/commands.html" />
-        <bt:Url id="Taskpane.Url" DefaultValue="https://julievan.github.io/ppt-shortcuts/src/taskpane.html" />
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://github.com/julievan/ppt-shortcuts" />
+        <bt:Url id="Commands.Url" DefaultValue="https://julievan.github.io/layout-shortcuts/src/commands.html" />
+        <bt:Url id="Taskpane.Url" DefaultValue="https://julievan.github.io/layout-shortcuts/src/taskpane.html" />
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://github.com/julievan/layout-shortcuts" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Layout Shortcuts is loaded" />
@@ -100,5 +100,5 @@
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
-  <ExtendedOverrides Url="https://julievan.github.io/ppt-shortcuts/shortcuts.json" />
+  <ExtendedOverrides Url="https://julievan.github.io/layout-shortcuts/shortcuts.json" />
 </OfficeApp>
