@@ -47,6 +47,41 @@ function selectionBounds(items) {
   return { left, right, top, bottom };
 }
 
+async function withAlignShapes(callback) {
+  try {
+    await PowerPoint.run(async (context) => {
+      const shapes = context.presentation.getSelectedShapes();
+      shapes.load("items");
+      await context.sync();
+
+      if (shapes.items.length === 0) {
+        showStatus("Select at least one shape first.");
+        return;
+      }
+
+      shapes.items.forEach((shape) => shape.load("left,top,width,height,id"));
+      await context.sync();
+
+      let slideBounds = null;
+      if (shapes.items.length === 1) {
+        const pageSetup = context.presentation.pageSetup;
+        pageSetup.load("slideWidth,slideHeight");
+        await context.sync();
+        slideBounds = {
+          width: pageSetup.slideWidth,
+          height: pageSetup.slideHeight,
+        };
+      }
+
+      await callback(shapes.items, slideBounds);
+      await context.sync();
+    });
+  } catch (err) {
+    showStatus(`Error: ${err.message}`);
+    console.error(err);
+  }
+}
+
 async function readClipboardText() {
   if (navigator.clipboard && navigator.clipboard.readText) {
     try {
@@ -98,23 +133,32 @@ function insertPlainTextAtSelection(text) {
 }
 
 // ---- Align ----
+// 1 shape: align to the slide edges/center. 2+ shapes: align to each other.
 
 Office.actions.associate("AlignLeft", () =>
-  withSelectedShapes(2, async (context, items) => {
-    const left = Math.min(...items.map((s) => s.left));
-    items.forEach((s) => (s.left = left));
+  withAlignShapes(async (items, slideBounds) => {
+    const targetLeft = slideBounds ? 0 : Math.min(...items.map((s) => s.left));
+    items.forEach((s) => (s.left = targetLeft));
   })
 );
 
 Office.actions.associate("AlignRight", () =>
-  withSelectedShapes(2, async (context, items) => {
+  withAlignShapes(async (items, slideBounds) => {
+    if (slideBounds) {
+      items.forEach((s) => (s.left = slideBounds.width - s.width));
+      return;
+    }
     const right = Math.max(...items.map((s) => s.left + s.width));
     items.forEach((s) => (s.left = right - s.width));
   })
 );
 
 Office.actions.associate("AlignCenter", () =>
-  withSelectedShapes(2, async (context, items) => {
+  withAlignShapes(async (items, slideBounds) => {
+    if (slideBounds) {
+      items.forEach((s) => (s.left = (slideBounds.width - s.width) / 2));
+      return;
+    }
     const { left, right } = selectionBounds(items);
     const center = (left + right) / 2;
     items.forEach((s) => (s.left = center - s.width / 2));
@@ -122,21 +166,29 @@ Office.actions.associate("AlignCenter", () =>
 );
 
 Office.actions.associate("AlignTop", () =>
-  withSelectedShapes(2, async (context, items) => {
-    const top = Math.min(...items.map((s) => s.top));
-    items.forEach((s) => (s.top = top));
+  withAlignShapes(async (items, slideBounds) => {
+    const targetTop = slideBounds ? 0 : Math.min(...items.map((s) => s.top));
+    items.forEach((s) => (s.top = targetTop));
   })
 );
 
 Office.actions.associate("AlignBottom", () =>
-  withSelectedShapes(2, async (context, items) => {
+  withAlignShapes(async (items, slideBounds) => {
+    if (slideBounds) {
+      items.forEach((s) => (s.top = slideBounds.height - s.height));
+      return;
+    }
     const bottom = Math.max(...items.map((s) => s.top + s.height));
     items.forEach((s) => (s.top = bottom - s.height));
   })
 );
 
 Office.actions.associate("AlignMiddle", () =>
-  withSelectedShapes(2, async (context, items) => {
+  withAlignShapes(async (items, slideBounds) => {
+    if (slideBounds) {
+      items.forEach((s) => (s.top = (slideBounds.height - s.height) / 2));
+      return;
+    }
     const { top, bottom } = selectionBounds(items);
     const middle = (top + bottom) / 2;
     items.forEach((s) => (s.top = middle - s.height / 2));
