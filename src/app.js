@@ -355,33 +355,65 @@ Office.actions.associate("InsertTextBox", () => {
 
 // ---- Text: Margins ----
 // Adjusts all four text frame margins uniformly (in points).
+// Uses per-shape session tracking so we don't rely on reading margins back from the API.
 
-const MARGIN_STEP_PT = 4;
+const MARGIN_STEP_PT = 6;
+const shapeMarginLevels = new Map();
 
-function clampMargin(value, delta) {
-  return Math.max(0, value + delta);
+function setUniformMargins(shape, marginPt) {
+  const tf = shape.textFrame;
+  tf.autoSizeSetting = PowerPoint.ShapeAutoSize.none;
+  tf.leftMargin = marginPt;
+  tf.rightMargin = marginPt;
+  tf.topMargin = marginPt;
+  tf.bottomMargin = marginPt;
 }
 
 function adjustTextMargins(delta) {
-  return withSelectedShapes(1, async (context, items) => {
-    items.forEach((shape) => shape.load("textFrame"));
+  return PowerPoint.run(async (context) => {
+    const shapes = context.presentation.getSelectedShapes();
+    shapes.load("items");
     await context.sync();
 
-    items.forEach((shape) => {
-      shape.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin,autoSizeSetting");
-    });
+    if (shapes.items.length === 0) {
+      showStatus("Select a shape with text first.");
+      return;
+    }
+
+    shapes.items.forEach((shape) => shape.load("id"));
     await context.sync();
 
-    items.forEach((shape) => {
-      const tf = shape.textFrame;
-      tf.autoSizeSetting = PowerPoint.ShapeAutoSize.none;
-      tf.leftMargin = clampMargin(tf.leftMargin ?? 0, delta);
-      tf.rightMargin = clampMargin(tf.rightMargin ?? 0, delta);
-      tf.topMargin = clampMargin(tf.topMargin ?? 0, delta);
-      tf.bottomMargin = clampMargin(tf.bottomMargin ?? 0, delta);
+    const needsSeed = shapes.items.some((shape) => !shapeMarginLevels.has(shape.id));
+    if (needsSeed) {
+      shapes.items.forEach((shape) => {
+        if (!shapeMarginLevels.has(shape.id)) {
+          shape.textFrame.load("leftMargin");
+        }
+      });
+      await context.sync();
+      shapes.items.forEach((shape) => {
+        if (!shapeMarginLevels.has(shape.id)) {
+          shapeMarginLevels.set(shape.id, shape.textFrame.leftMargin ?? 0);
+        }
+      });
+    }
+
+    shapes.items.forEach((shape) => {
+      const current = shapeMarginLevels.get(shape.id) ?? 0;
+      const next = Math.max(0, current + delta);
+      shapeMarginLevels.set(shape.id, next);
+      setUniformMargins(shape, next);
     });
 
-    showStatus(delta > 0 ? "Text margins increased." : "Text margins decreased.");
+    await context.sync();
+    showStatus(
+      delta > 0
+        ? `Text margins increased to ${shapeMarginLevels.get(shapes.items[0].id)}pt.`
+        : `Text margins decreased to ${shapeMarginLevels.get(shapes.items[0].id)}pt.`
+    );
+  }).catch((err) => {
+    showStatus(`Margin error: ${err.message}`);
+    console.error(err);
   });
 }
 
