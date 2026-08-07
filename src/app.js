@@ -364,17 +364,21 @@ function clampMargin(value, delta) {
 
 function adjustTextMargins(delta) {
   return withSelectedShapes(1, async (context, items) => {
+    items.forEach((shape) => shape.load("textFrame"));
+    await context.sync();
+
     items.forEach((shape) => {
-      shape.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin");
+      shape.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin,autoSizeSetting");
     });
     await context.sync();
 
     items.forEach((shape) => {
       const tf = shape.textFrame;
-      tf.leftMargin = clampMargin(tf.leftMargin, delta);
-      tf.rightMargin = clampMargin(tf.rightMargin, delta);
-      tf.topMargin = clampMargin(tf.topMargin, delta);
-      tf.bottomMargin = clampMargin(tf.bottomMargin, delta);
+      tf.autoSizeSetting = PowerPoint.ShapeAutoSize.none;
+      tf.leftMargin = clampMargin(tf.leftMargin ?? 0, delta);
+      tf.rightMargin = clampMargin(tf.rightMargin ?? 0, delta);
+      tf.topMargin = clampMargin(tf.topMargin ?? 0, delta);
+      tf.bottomMargin = clampMargin(tf.bottomMargin ?? 0, delta);
     });
 
     showStatus(delta > 0 ? "Text margins increased." : "Text margins decreased.");
