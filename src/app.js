@@ -353,6 +353,37 @@ Office.actions.associate("InsertTextBox", () => {
   });
 });
 
+// ---- Text: Margins ----
+// Adjusts all four text frame margins uniformly (in points).
+
+const MARGIN_STEP_PT = 4;
+
+function clampMargin(value, delta) {
+  return Math.max(0, value + delta);
+}
+
+function adjustTextMargins(delta) {
+  return withSelectedShapes(1, async (context, items) => {
+    items.forEach((shape) => {
+      shape.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin");
+    });
+    await context.sync();
+
+    items.forEach((shape) => {
+      const tf = shape.textFrame;
+      tf.leftMargin = clampMargin(tf.leftMargin, delta);
+      tf.rightMargin = clampMargin(tf.rightMargin, delta);
+      tf.topMargin = clampMargin(tf.topMargin, delta);
+      tf.bottomMargin = clampMargin(tf.bottomMargin, delta);
+    });
+
+    showStatus(delta > 0 ? "Text margins increased." : "Text margins decreased.");
+  });
+}
+
+Office.actions.associate("IncreaseTextMargins", () => adjustTextMargins(MARGIN_STEP_PT));
+Office.actions.associate("DecreaseTextMargins", () => adjustTextMargins(-MARGIN_STEP_PT));
+
 // ---- Text: Wrap Text in Shape ----
 
 Office.actions.associate("ToggleWrapText", () =>
