@@ -251,6 +251,23 @@ Office.actions.associate("PastePosition", () =>
   })
 );
 
+Office.actions.associate("SwapPositions", () =>
+  withSelectedShapes(2, async (context, items) => {
+    if (items.length !== 2) {
+      showStatus("Select exactly 2 shapes to swap positions.");
+      return;
+    }
+    const [first, second] = items;
+    const firstLeft = first.left;
+    const firstTop = first.top;
+    first.left = second.left;
+    first.top = second.top;
+    second.left = firstLeft;
+    second.top = firstTop;
+    showStatus("Positions swapped.");
+  })
+);
+
 // ---- Insert: Sticky Note ----
 
 Office.actions.associate("InsertStickyNote", () => {
@@ -311,14 +328,23 @@ Office.actions.associate("InsertTextBox", () => {
       top = ref.top;
     }
 
-    const textBox = slide.shapes.addTextBox("", {
-      left,
-      top,
-      width: 200,
-      height: 50,
-    });
-    await context.sync();
+    const textBox = slide.shapes.addTextBox("Text", { left, top, width: 200, height: 40 });
+    textBox.name = "Text Box";
 
+    const textFrame = textBox.textFrame;
+    textFrame.leftMargin = 0;
+    textFrame.rightMargin = 0;
+    textFrame.topMargin = 0;
+    textFrame.bottomMargin = 0;
+    textFrame.autoSizeSetting = PowerPoint.ShapeAutoSize.autoSizeShapeToFitText;
+    textFrame.wordWrap = true;
+
+    textBox.lineFormat.visible = false;
+    textBox.lineFormat.transparency = 1;
+    textBox.lineFormat.weight = 0;
+    textBox.fill.clear();
+
+    await context.sync();
     textBox.select();
     await context.sync();
   }).catch((err) => {
@@ -342,24 +368,25 @@ Office.actions.associate("ToggleWrapText", () =>
 
 // ---- Text: Toggle Bullets ----
 
-Office.actions.associate("ToggleBullets", () => {
-  return PowerPoint.run(async (context) => {
-    const textRange = context.presentation.getSelectedTextRange();
+Office.actions.associate("ToggleBullets", () =>
+  withSelectedShapes(1, async (context, items) => {
+    const shape = items[0];
+    shape.load("textFrame");
+    await context.sync();
+
+    const textRange = shape.textFrame.textRange;
     textRange.load("paragraphFormat/bulletFormat/visible");
     await context.sync();
 
-    const currentlyVisible = textRange.paragraphFormat.bulletFormat.visible === true;
-    textRange.paragraphFormat.bulletFormat.visible = !currentlyVisible;
+    const bulletFormat = textRange.paragraphFormat.bulletFormat;
+    const currentlyVisible = bulletFormat.visible === true;
+    bulletFormat.visible = !currentlyVisible;
     if (!currentlyVisible) {
-      textRange.paragraphFormat.bulletFormat.type = PowerPoint.BulletType.unnumbered;
+      bulletFormat.type = PowerPoint.BulletType.unnumbered;
     }
-    await context.sync();
     showStatus(!currentlyVisible ? "Bullets on." : "Bullets off.");
-  }).catch((err) => {
-    showStatus("Click inside a text box first.");
-    console.error(err);
-  });
-});
+  })
+);
 
 // ---- Text: Paste Unformatted ----
 
