@@ -437,6 +437,7 @@ Office.actions.associate("InsertStickyNote", () => {
     note.fill.setSolidColor("#FFFF00");
     note.lineFormat.color = "#E0E000";
     note.lineFormat.weight = 1;
+    note.textFrame.textRange.font.name = "Poppins";
     note.textFrame.textRange.font.size = 14;
     note.textFrame.textRange.font.color = "#000000";
     await context.sync();
