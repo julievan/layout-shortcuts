@@ -47,6 +47,89 @@ function selectionBounds(items) {
   return { left, right, top, bottom };
 }
 
+function shapeCenterY(shape) {
+  return shape.top + shape.height / 2;
+}
+
+function shapeCenterX(shape) {
+  return shape.left + shape.width / 2;
+}
+
+function averageSize(shapes, dimension) {
+  if (shapes.length === 0) {
+    return 20;
+  }
+  const total = shapes.reduce(
+    (sum, shape) => sum + (dimension === "height" ? shape.height : shape.width),
+    0
+  );
+  return total / shapes.length;
+}
+
+// Cluster shapes that share roughly the same row or column.
+function clusterShapes(shapes, getCenter, tolerance) {
+  if (shapes.length === 0) {
+    return [];
+  }
+
+  const sorted = [...shapes].sort((a, b) => getCenter(a) - getCenter(b));
+  const clusters = [[sorted[0]]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const cluster = clusters[clusters.length - 1];
+    const clusterAvg =
+      cluster.reduce((sum, shape) => sum + getCenter(shape), 0) / cluster.length;
+
+    if (Math.abs(getCenter(sorted[i]) - clusterAvg) <= tolerance) {
+      cluster.push(sorted[i]);
+    } else {
+      clusters.push([sorted[i]]);
+    }
+  }
+
+  return clusters;
+}
+
+async function groupSelectedByAxis(axis) {
+  try {
+    await PowerPoint.run(async (context) => {
+      const slide = context.presentation.getSelectedSlides().getItemAt(0);
+      const selectedShapes = context.presentation.getSelectedShapes();
+      selectedShapes.load("items");
+      await context.sync();
+
+      if (selectedShapes.items.length < 2) {
+        showStatus("Select at least 2 shapes to group.");
+        return;
+      }
+
+      selectedShapes.items.forEach((shape) => shape.load("left,top,width,height,id"));
+      await context.sync();
+
+      const items = selectedShapes.items;
+      const isRow = axis === "row";
+      const getCenter = isRow ? shapeCenterY : shapeCenterX;
+      const tolerance = averageSize(items, isRow ? "height" : "width") * 0.35;
+      const clusters = clusterShapes(items, getCenter, tolerance);
+      const groupsToCreate = clusters.filter((cluster) => cluster.length >= 2);
+
+      if (groupsToCreate.length === 0) {
+        showStatus(`No ${axis}s found with 2+ shapes.`);
+        return;
+      }
+
+      groupsToCreate.forEach((cluster) => slide.shapes.addGroup(cluster));
+      await context.sync();
+
+      const label = isRow ? "row" : "column";
+      showStatus(`Created ${groupsToCreate.length} ${label} group(s).`);
+    });
+  } catch (err) {
+    showStatus(`Error: ${err.message}`);
+    console.error(err);
+  }
+}
+
 async function withAlignShapes(callback) {
   try {
     await PowerPoint.run(async (context) => {
@@ -320,6 +403,11 @@ Office.actions.associate("SwapPositions", () =>
   })
 );
 
+// ---- Group by row / column ----
+
+Office.actions.associate("GroupByRow", () => groupSelectedByAxis("row"));
+Office.actions.associate("GroupByColumn", () => groupSelectedByAxis("column"));
+
 // ---- Insert: Sticky Note ----
 
 Office.actions.associate("InsertStickyNote", () => {
@@ -346,11 +434,11 @@ Office.actions.associate("InsertStickyNote", () => {
       height: 90,
     });
     note.name = "Sticky Note";
-    note.fill.setSolidColor("#FFF2A8");
-    note.lineFormat.color = "#E0C93A";
+    note.fill.setSolidColor("#FFFF00");
+    note.lineFormat.color = "#E0E000";
     note.lineFormat.weight = 1;
-    note.textFrame.textRange.font.size = 11;
-    note.textFrame.textRange.font.color = "#5C4B00";
+    note.textFrame.textRange.font.size = 14;
+    note.textFrame.textRange.font.color = "#000000";
     await context.sync();
 
     note.select();
