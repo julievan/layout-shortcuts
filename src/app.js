@@ -408,6 +408,145 @@ Office.actions.associate("SwapPositions", () =>
 Office.actions.associate("GroupByRow", () => groupSelectedByAxis("row"));
 Office.actions.associate("GroupByColumn", () => groupSelectedByAxis("column"));
 
+// ---- Join / split text boxes ----
+
+const TEXT_BOX_GAP_PT = 8;
+
+function sortShapesReadingOrder(shapes) {
+  return [...shapes].sort((a, b) => {
+    if (Math.abs(a.top - b.top) > 6) {
+      return a.top - b.top;
+    }
+    return a.left - b.left;
+  });
+}
+
+function applyFontFromSource(sourceFont, targetFont) {
+  if (sourceFont.name) {
+    targetFont.name = sourceFont.name;
+  }
+  if (sourceFont.size) {
+    targetFont.size = sourceFont.size;
+  }
+  if (sourceFont.color) {
+    targetFont.color = sourceFont.color;
+  }
+}
+
+function copyTextFrameStyle(sourceFrame, targetFrame) {
+  targetFrame.leftMargin = sourceFrame.leftMargin;
+  targetFrame.rightMargin = sourceFrame.rightMargin;
+  targetFrame.topMargin = sourceFrame.topMargin;
+  targetFrame.bottomMargin = sourceFrame.bottomMargin;
+  targetFrame.wordWrap = sourceFrame.wordWrap;
+  targetFrame.autoSizeSetting = PowerPoint.ShapeAutoSize.autoSizeShapeToFitText;
+  applyFontFromSource(sourceFrame.textRange.font, targetFrame.textRange.font);
+}
+
+Office.actions.associate("JoinTextBoxes", () => {
+  return PowerPoint.run(async (context) => {
+    const slide = context.presentation.getSelectedSlides().getItemAt(0);
+    const selectedShapes = context.presentation.getSelectedShapes();
+    selectedShapes.load("items");
+    await context.sync();
+
+    if (selectedShapes.items.length < 2) {
+      showStatus("Select at least 2 text boxes to join.");
+      return;
+    }
+
+    selectedShapes.items.forEach((shape) => {
+      shape.load("left,top,width,height,id");
+      shape.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin,wordWrap");
+      shape.textFrame.textRange.load("text");
+      shape.textFrame.textRange.font.load("name,size,color");
+    });
+    await context.sync();
+
+    const shapes = sortShapesReadingOrder(selectedShapes.items);
+    const combinedText = shapes
+      .map((shape) => shape.textFrame.textRange.text.replace(/[\r\n]+$/, ""))
+      .join("\n");
+
+    const bounds = selectionBounds(shapes);
+    const joined = slide.shapes.addTextBox(combinedText, {
+      left: bounds.left,
+      top: bounds.top,
+      width: Math.max(bounds.right - bounds.left, 40),
+      height: Math.max(bounds.bottom - bounds.top, 24),
+    });
+    joined.name = "Joined Text Box";
+    copyTextFrameStyle(shapes[0].textFrame, joined.textFrame);
+
+    shapes.forEach((shape) => shape.delete());
+    await context.sync();
+
+    joined.select();
+    await context.sync();
+    showStatus(`Joined ${shapes.length} text boxes.`);
+  }).catch((err) => {
+    showStatus(`Error: ${err.message}`);
+    console.error(err);
+  });
+});
+
+Office.actions.associate("SplitTextBox", () => {
+  return PowerPoint.run(async (context) => {
+    const slide = context.presentation.getSelectedSlides().getItemAt(0);
+    const selectedShapes = context.presentation.getSelectedShapes();
+    selectedShapes.load("items");
+    await context.sync();
+
+    if (selectedShapes.items.length !== 1) {
+      showStatus("Select exactly 1 text box to split.");
+      return;
+    }
+
+    const source = selectedShapes.items[0];
+    source.load("left,top,width,height,id");
+    source.textFrame.load("leftMargin,rightMargin,topMargin,bottomMargin,wordWrap");
+    source.textFrame.textRange.load("text");
+    source.textFrame.textRange.font.load("name,size,color");
+    await context.sync();
+
+    const lines = source.textFrame.textRange.text.split(/\r?\n/);
+    if (lines.length < 2) {
+      showStatus("Text box needs at least 2 lines to split.");
+      return;
+    }
+
+    let top = source.top;
+    const created = [];
+
+    for (const line of lines) {
+      const textBox = slide.shapes.addTextBox(line, {
+        left: source.left,
+        top,
+        width: source.width,
+        height: 24,
+      });
+      textBox.name = "Text Box";
+      copyTextFrameStyle(source.textFrame, textBox.textFrame);
+      textBox.load("height");
+      await context.sync();
+      top += textBox.height + TEXT_BOX_GAP_PT;
+      created.push(textBox);
+    }
+
+    source.delete();
+    await context.sync();
+
+    if (created.length > 0) {
+      created[0].select();
+      await context.sync();
+    }
+    showStatus(`Split into ${lines.length} text boxes.`);
+  }).catch((err) => {
+    showStatus(`Error: ${err.message}`);
+    console.error(err);
+  });
+});
+
 // ---- Insert: Sticky Note ----
 
 Office.actions.associate("InsertStickyNote", () => {
